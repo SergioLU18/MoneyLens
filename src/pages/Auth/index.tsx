@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Typography, TextField } from '@mui/material';
 import { Container, ControllerTypography, Row } from './styles';
 import { supabase } from '../../supabaseClient';
+import { useNavigate } from 'react-router-dom';
 
 
 export const Auth: React.FC = () => {
@@ -10,6 +11,8 @@ export const Auth: React.FC = () => {
     const [email, setEmail] = React.useState("");
     const [password, setPassword] = React.useState("");
     const [confirmPassword, setConfirmPassword] = React.useState("")
+
+    const navigate = useNavigate();
 
     const resetData = () => {
       setEmail("")
@@ -33,7 +36,7 @@ export const Auth: React.FC = () => {
           console.log(error.message)
         }
         else {
-          resetData()
+          navigate('/dashboard')
         }
       }
       else {
@@ -55,16 +58,31 @@ export const Auth: React.FC = () => {
 
     React.useEffect(() => {
       const fetchUser = async () => {
-        const { data, error } = await supabase.auth.getUser();
+        const { error } = await supabase.auth.getUser();
         if (error) {
           console.error('Error fetching user:', error);
         } else {
-          console.log(data)
+          navigate('/dashboard')
         }
       };
-      
+
       fetchUser();
     }, [])
+
+    const handleEnterPress = (event: KeyboardEvent) => {
+      if (event.key === 'Enter') {
+          handleSubmit()
+      }
+    };
+
+
+  React.useEffect(() => {
+      window.addEventListener('keydown', handleEnterPress);
+  
+      return () => {
+          window.removeEventListener('keydown', handleEnterPress);
+      };
+    }, [email, password, confirmPassword]);
 
     return (
         <Container>
