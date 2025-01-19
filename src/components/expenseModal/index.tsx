@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Typography, Modal, TextField } from '@mui/material';
 import { ModalContent } from './styles';
-import { Expense, ExpenseTag } from '../../types';
+import { Expense } from '../../types';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
@@ -11,6 +11,9 @@ import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select, { SelectChangeEvent } from '@mui/material/Select';
 import { supabase } from '../../supabaseClient';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState } from '../../state/store';
+import { setExpenseTags } from '../../state/expenseTags';
 
 interface ExpenseModalProps {
     open: boolean;
@@ -20,11 +23,13 @@ interface ExpenseModalProps {
 
 export const ExpenseModal: React.FC<ExpenseModalProps> = ({open, onClose, onSubmit}) => {
 
-    const [tags, setTags] = React.useState<ExpenseTag[]>([])
     const [amount, setAmount] = React.useState<number>();
     const [date, setDate] = React.useState<Dayjs | null>();
     const [description, setDescription] = React.useState<string>()
     const [tagId, setTagId] = React.useState<number>()
+
+    const tags = useSelector((state: RootState) => state.expenseTags)
+    const dispatch = useDispatch();
 
     const handleClose = () => {
         setAmount(undefined)
@@ -46,12 +51,14 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({open, onClose, onSubm
 
     React.useEffect(() => {
         const fetchTags = async () => {
+            if(tags.length > 0) return;
+
             const { data, error } = await supabase.from('expense_tag').select()
             if (error) {
                 console.error('Error fetching tags:', error);
             }
             else if(data.length > 0) {
-                setTags(data)
+                dispatch(setExpenseTags(data))
             }
         };
 
@@ -91,8 +98,9 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({open, onClose, onSubm
                     <Select
                         labelId="expense-tag"
                         id="demo-simple-select"
-                        value={tagId?.toString()}
+                        value={tagId?.toString() || ""}
                         label="Tag"
+                        defaultValue={undefined}
                         onChange={(e: SelectChangeEvent) => setTagId(Number(e.target.value))}
                     >
                         {tags.map((tag, index) => (

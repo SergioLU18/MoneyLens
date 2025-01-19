@@ -6,6 +6,8 @@ import { supabase } from '../../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 import { User } from '@supabase/supabase-js';
 import { format } from 'date-fns';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../state/store';
 
 export const Dashboard: React.FC = () => {
 
@@ -14,6 +16,7 @@ export const Dashboard: React.FC = () => {
     const [expenses, setExpenses] = React.useState<Expense[]>([])
 
     const navigate = useNavigate();
+    const tags = useSelector((state: RootState) => state.expenseTags)
 
     const handleModalSubmit = async (expense: Expense) => {
 
@@ -42,8 +45,22 @@ export const Dashboard: React.FC = () => {
             console.log(error.message)
         }
         else {
-            setExpenses(data)
+            setExpenses(data.map((expense) => {
+                return {
+                    date: expense.date,
+                    description: expense.description,
+                    amount: expense.amount,
+                    expenseTagId: expense.expense_tag_id
+                }
+            }))
         }
+    }
+
+    const getTagName = (id?: number) => {
+        if(!id) {
+            return "No tag"
+        }
+        return tags.filter((tag) => tag.id === id)[0].name
     }
 
     React.useEffect(() => {
@@ -77,7 +94,7 @@ export const Dashboard: React.FC = () => {
                     </ExpenseCardRow>
                     <ExpenseCardRow>
                         <p>{format(expense.date, 'dd/MM/yyyy')}</p>
-                        <p>${expense.amount}</p>
+                        <p>{getTagName(expense.expenseTagId)}</p>
                     </ExpenseCardRow>
                 </ExpenseCard>
             ))}
