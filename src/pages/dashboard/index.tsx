@@ -1,20 +1,87 @@
 import * as React from 'react';
 import { ExpenseModal } from '../../components/expenseModal';
+import { DashboardContainer, DashboardActions, ExpenseCard, ExpenseCardRow } from './styles';
+import { Expense } from '../../types';
+import { supabase } from '../../supabaseClient';
+import { useNavigate } from 'react-router-dom';
+import { User } from '@supabase/supabase-js';
+import { format } from 'date-fns';
 
 export const Dashboard: React.FC = () => {
 
+    const [user, setUser] = React.useState<User>();
     const [modalOpen, setModalOpen] = React.useState(false);
+    const [expenses, setExpenses] = React.useState<Expense[]>([])
 
-    const handleModalSubmit = () => {
-        //TODO: Add logic to add new expense
+    const navigate = useNavigate();
+
+    const handleModalSubmit = async (expense: Expense) => {
+
+        const { error } = await supabase.from('expense').insert({
+            user_id: user?.id,
+            amount: expense.amount,
+            description: expense.description,
+            date: expense.date,
+            expense_tag_id: expense.expenseTagId
+        })
+        if(error) {
+            console.log(error)
+        }
+        else {
+            setExpenses([
+                ...expenses,
+                expense
+            ])
+        }
+
     }
 
+    const fetchUserExpenses = async (userId: string) => {
+        const { data, error } = await supabase.from("expense").select().eq("user_id", userId)
+        if(error) {
+            console.log(error.message)
+        }
+        else {
+            setExpenses(data)
+        }
+    }
+
+    React.useEffect(() => {
+        const fetchUser = async () => {
+            const { data, error } = await supabase.auth.getUser();
+            if (error) {
+                console.error('Error fetching user:', error);
+                navigate('/login')
+            }
+            else if(data.user) {
+                setUser(data.user)
+                fetchUserExpenses(data.user.id)
+            }
+        };
+
+        fetchUser();
+    }, [])
+
     return (
-        <div>
-            <ExpenseModal open={modalOpen} handleSubmit={handleModalSubmit} onClose={() => setModalOpen(false)}/>
-            <button onClick={() => setModalOpen(true)}>
-                Open Modal
-            </button>
-        </div>
+        <DashboardContainer>
+            <DashboardActions>
+                <button onClick={() => setModalOpen(true)}>
+                    Add expense
+                </button>
+            </DashboardActions>
+            {expenses.map((expense, index) => (
+                <ExpenseCard key={index}>
+                    <ExpenseCardRow>
+                        <p>{expense.description}</p>
+                        <p>${expense.amount}</p>
+                    </ExpenseCardRow>
+                    <ExpenseCardRow>
+                        <p>{format(expense.date, 'dd/MM/yyyy')}</p>
+                        <p>${expense.amount}</p>
+                    </ExpenseCardRow>
+                </ExpenseCard>
+            ))}
+            <ExpenseModal open={modalOpen} onSubmit={handleModalSubmit} onClose={() => setModalOpen(false)}/>
+        </DashboardContainer>
     )
 }

@@ -1,6 +1,6 @@
 import './App.css'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom'
-import { Auth } from './pages/Auth'
+import { Auth } from './pages/auth'
 import { Dashboard } from './pages/dashboard'
 
 function App() {
