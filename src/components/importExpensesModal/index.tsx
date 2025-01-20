@@ -1,6 +1,8 @@
 import * as React from 'react';
-import { Modal, Typography } from '@mui/material';
+import { Modal } from '@mui/material';
 import { ModalContent } from './styles';
+import { Expense } from '../../types';
+import { ExpenseCard } from '../expenseCard';
 
 interface ImportExpensesModalProps {
     open: boolean;
@@ -8,6 +10,8 @@ interface ImportExpensesModalProps {
 }
 
 export const ImportExpensesModal: React.FC<ImportExpensesModalProps> = ({ open, onClose }) => {
+
+    const [importedExpenses, setImportedExpenses] = React.useState<Expense[]>([])
 
     const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
@@ -21,24 +25,34 @@ export const ImportExpensesModal: React.FC<ImportExpensesModalProps> = ({ open, 
     
           reader.readAsText(file);
         }
-      };
+    };
     
-      const processCSV = (data: string) => {
+    const processCSV = (data: string) => {
         const lines = data.split('\n').map((line) => line.trim());
-        const header = lines[0]?.split(',') || [];
         const body = lines.slice(1).map((line) => line.split(','));
     
-        console.log(header);
-        console.log(body);
-      };
+        setImportedExpenses(body.map((row) => {
+            return {
+                description: row[0],
+                amount: parseFloat(row[1]),
+                date: new Date(row[2]),
+                expenseTagId: undefined
+            }
+        }))
+    };
+
+    const handleClose = () => {
+        setImportedExpenses([])
+        onClose()
+    }
 
     return (
-        <Modal open={open} onClose={onClose}>
+        <Modal open={open} onClose={handleClose}>
             <ModalContent>
-                <Typography>
-                    Here we import the data
-                </Typography>
                 <input type="file" accept=".csv" onChange={handleFileChange}/>
+                {importedExpenses.map((expense, index) => (
+                    <ExpenseCard key={index} expense={expense} />
+                ))}
             </ModalContent>
         </Modal>
     )

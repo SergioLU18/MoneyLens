@@ -27,7 +27,7 @@ export const ExpenseCard: React.FC<ExpenseCardProps> = ({ expense }) => {
                 <p>${expense.amount}</p>
             </Row>
             <Row>
-                <p>{format(expense.date, 'dd/MM/yyyy')}</p>
+                <p>{format(expense.date, 'MM/dd/yyyy')}</p>
                 <p>{getTagName(expense.expenseTagId)}</p>
             </Row>
         </StyledCard>

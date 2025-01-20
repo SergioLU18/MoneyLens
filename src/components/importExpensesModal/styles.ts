@@ -6,7 +6,7 @@ export const ModalContent = styled(Box)`
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 400px;
+    width: 600px;
     background-color: #fff;
     padding: 16px;
     border-radius: 10px;
