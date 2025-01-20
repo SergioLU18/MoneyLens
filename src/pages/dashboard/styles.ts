@@ -1,5 +1,4 @@
 import styled from 'styled-components';
-import { Card } from '@mui/material';
 
 export const DashboardContainer = styled.div`
     max-width: 100%;
@@ -15,14 +14,6 @@ export const Actions = styled.div`
     display: flex;
     flex-direction: row;
     gap: 8px;
-`
-
-export const ExpenseCard = styled(Card)`
-    display: flex;
-    flex-direction: column;
-    padding: 16px;
-    background-color: red;
-    gap: 16px;
 `
 
 export const Row = styled.div`
