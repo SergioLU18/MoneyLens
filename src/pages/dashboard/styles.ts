@@ -10,10 +10,11 @@ export const DashboardContainer = styled.div`
     gap: 16px;
 `
 
-export const DashboardActions = styled.div`
+export const Actions = styled.div`
     max-width: 100%;
     display: flex;
-    justify-content: right;
+    flex-direction: row;
+    gap: 8px;
 `
 
 export const ExpenseCard = styled(Card)`
@@ -24,7 +25,7 @@ export const ExpenseCard = styled(Card)`
     gap: 16px;
 `
 
-export const ExpenseCardRow = styled.div`
+export const Row = styled.div`
     display: flex;
     flex-direction: row;
     justify-content: space-between;

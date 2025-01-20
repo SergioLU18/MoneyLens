@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { ExpenseModal } from '../../components/expenseModal';
-import { DashboardContainer, DashboardActions, ExpenseCard, ExpenseCardRow } from './styles';
+import { DashboardContainer, Actions, ExpenseCard, Row } from './styles';
 import { Expense } from '../../types';
 import { supabase } from '../../supabaseClient';
 import { useNavigate } from 'react-router-dom';
@@ -8,18 +8,26 @@ import { User } from '@supabase/supabase-js';
 import { format } from 'date-fns';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
+import { Typography } from '@mui/material';
+import InputLabel from '@mui/material/InputLabel';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Select, { SelectChangeEvent } from '@mui/material/Select';
+import { ImportExpensesModal } from '../../components/importExpensesModal';
 
 export const Dashboard: React.FC = () => {
 
     const [user, setUser] = React.useState<User>();
-    const [modalOpen, setModalOpen] = React.useState(false);
+    const [expenseModalOpen, setExpenseModalOpen] = React.useState(false);
+    const [importModalOpen, setImportModalOpen] = React.useState(false);
     const [expenses, setExpenses] = React.useState<Expense[]>([])
+    const [filteredExpenses, setFilteredExpenses] = React.useState<Expense[]>([])
+    const [filterExpenseTagId, setfilterExpenseTagId] = React.useState<number>()
 
     const navigate = useNavigate();
     const tags = useSelector((state: RootState) => state.expenseTags)
 
     const handleModalSubmit = async (expense: Expense) => {
-
         const { error } = await supabase.from('expense').insert({
             user_id: user?.id,
             amount: expense.amount,
@@ -36,7 +44,6 @@ export const Dashboard: React.FC = () => {
                 expense
             ])
         }
-
     }
 
     const fetchUserExpenses = async (userId: string) => {
@@ -57,11 +64,20 @@ export const Dashboard: React.FC = () => {
     }
 
     const getTagName = (id?: number) => {
-        if(!id) {
+        if(!id || !tags.length) {
             return "No tag"
         }
         return tags.filter((tag) => tag.id === id)[0].name
     }
+
+    React.useEffect(() => {
+        if(!expenses.length) return
+        let expensesCopy = [...expenses]
+        if(filterExpenseTagId) {
+            expensesCopy = expenses.filter((expense) => expense.expenseTagId === filterExpenseTagId)
+        }
+        setFilteredExpenses(expensesCopy)
+    }, [filterExpenseTagId, expenses])
 
     React.useEffect(() => {
         const fetchUser = async () => {
@@ -81,24 +97,54 @@ export const Dashboard: React.FC = () => {
 
     return (
         <DashboardContainer>
-            <DashboardActions>
-                <button onClick={() => setModalOpen(true)}>
-                    Add expense
-                </button>
-            </DashboardActions>
-            {expenses.map((expense, index) => (
+            <Row>
+                <Typography variant="h4" sx={{color: "#000"}}>
+                    MoneyLens
+                </Typography>
+                <Actions>
+                    <button onClick={() => setExpenseModalOpen(true)}>
+                        Add expense
+                    </button>
+                    <button onClick={() => setImportModalOpen(true)}>
+                        Import from CSV
+                    </button>
+                </Actions>
+            </Row>
+            <Row>
+                <FormControl>
+                    <InputLabel id="expense-tag">Tag</InputLabel>
+                    <Select
+                        labelId="expense-tag"
+                        id="demo-simple-select"
+                        value={filterExpenseTagId?.toString() || ""}
+                        label="Tag"
+                        defaultValue={undefined}
+                        onChange={(e: SelectChangeEvent) => setfilterExpenseTagId(Number(e.target.value))}
+                        sx={{minWidth: 200}}
+                    >
+                        <MenuItem value="">
+                            <em>Clear</em>
+                        </MenuItem>
+                        {tags.map((tag, index) => (
+                            <MenuItem key={`tag-select-${index}`} value={tag.id}>{tag.name}</MenuItem>
+                        ))}
+                    </Select>
+                </FormControl>     
+            </Row>
+            {filteredExpenses.map((expense, index) => (
                 <ExpenseCard key={index}>
-                    <ExpenseCardRow>
+                    <Row>
                         <p>{expense.description}</p>
                         <p>${expense.amount}</p>
-                    </ExpenseCardRow>
-                    <ExpenseCardRow>
+                    </Row>
+                    <Row>
                         <p>{format(expense.date, 'dd/MM/yyyy')}</p>
                         <p>{getTagName(expense.expenseTagId)}</p>
-                    </ExpenseCardRow>
+                    </Row>
                 </ExpenseCard>
             ))}
-            <ExpenseModal open={modalOpen} onSubmit={handleModalSubmit} onClose={() => setModalOpen(false)}/>
+            <ExpenseModal open={expenseModalOpen} onSubmit={handleModalSubmit} onClose={() => setExpenseModalOpen(false)}/>
+            <ImportExpensesModal open={importModalOpen} onClose={() => setImportModalOpen(false)} />
         </DashboardContainer>
     )
 }

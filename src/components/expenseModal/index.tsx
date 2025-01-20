@@ -93,7 +93,7 @@ export const ExpenseModal: React.FC<ExpenseModalProps> = ({open, onClose, onSubm
                         onChange={(newDate) => setDate(newDate)} 
                     />
                 </LocalizationProvider>
-                <FormControl fullWidth>
+                <FormControl>
                     <InputLabel id="expense-tag">Tag</InputLabel>
                     <Select
                         labelId="expense-tag"
